@@ -1,4 +1,4 @@
-name: catch
+name: BMS Seat Sniper
 
 on:
   workflow_dispatch:
