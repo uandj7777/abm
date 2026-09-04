@@ -1,4 +1,4 @@
-name: catcher
+name: BMS Seat Sniper
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
         run: |
           git clone --depth 1 "https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/${{ github.repository }}.git" .
 
-      - name: Install Python Dependencies
+      - name: Install Dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install curl_cffi requests
@@ -25,9 +25,10 @@ jobs:
         env:
           SNIPER_URL: ${{ secrets.SNIPER_URL }}
         run: |
+          # Strip quotes/whitespace and append a cache-busting timestamp
           CLEAN_URL=$(echo "$SNIPER_URL" | tr -d '\r\n"' | xargs)
-          curl -fL --retry 3 "$CLEAN_URL" -o sniper.py
-          head -n 5 sniper.py
+          curl -fL --retry 3 "${CLEAN_URL}?ts=$(date +%s)" -o sniper.py
+          head -n 10 sniper.py
 
       - name: Run Sniper
         env:
@@ -35,6 +36,5 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           PROXY_LIST: ${{ secrets.PROXY_LIST }}
           GRABROOM_URL: ${{ secrets.GRABROOM_URL }}
-          BMS_EMAIL: ${{ secrets.BMS_EMAIL }}
-          BMS_PHONE: ${{ secrets.BMS_PHONE }}
-        run: python3 sniper.py
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: python3 -u sniper.py
