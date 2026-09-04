@@ -21,11 +21,19 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Install & Configure Cloudflare WARP
+        run: |
+          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+          sudo apt-get update && sudo apt-get install -y cloudflare-warp
+          warp-cli --accept-tos registration new || true
+          warp-cli --accept-tos mode proxy || true
+          warp-cli --accept-tos proxy port 40000 || true
+
       - name: Fetch Sniper Script from Gist
         env:
           SNIPER_URL: ${{ secrets.SNIPER_URL }}
         run: |
-          # Strip accidental quotes, newlines, or extra spaces
           CLEAN_URL=$(echo "$SNIPER_URL" | tr -d '\r\n"' | xargs)
           curl -fL --retry 3 "$CLEAN_URL" -o sniper.py
           head -n 5 sniper.py
