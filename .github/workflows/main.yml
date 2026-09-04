@@ -11,7 +11,7 @@ jobs:
         run: |
           git clone --depth 1 "https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/${{ github.repository }}.git" .
 
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install curl_cffi requests
@@ -21,14 +21,20 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch Sniper Script from Gist
+      - name: Fetch Fresh Sniper Script from Gist
         env:
           SNIPER_URL: ${{ secrets.SNIPER_URL }}
         run: |
-          # Strip quotes/whitespace and append a cache-busting timestamp
+          # Remove any stale local file from the clone
+          rm -f sniper.py
+
+          # Clean secret URL and bust GitHub's 5-minute CDN cache
           CLEAN_URL=$(echo "$SNIPER_URL" | tr -d '\r\n"' | xargs)
           curl -fL --retry 3 "${CLEAN_URL}?ts=$(date +%s)" -o sniper.py
-          head -n 10 sniper.py
+
+          echo "=== VERIFYING start_warp() IN DOWNLOADED SCRIPT ==="
+          grep -A 8 "def start_warp" sniper.py
+          echo "==================================================="
 
       - name: Run Sniper
         env:
