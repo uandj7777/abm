@@ -1,0 +1,38 @@
+name: BMS Seat Sniper
+
+on:
+  workflow_dispatch:
+
+jobs:
+  snipe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install curl_cffi requests
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch and Run Sniper from Gist
+        env:
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PROXY_LIST: ${{ secrets.PROXY_LIST }}
+          GRABROOM_URL: ${{ secrets.GRABROOM_URL }}
+          SNIPER_URL: ${{ secrets.SNIPER_URL }}
+        run: |
+          curl -sL "$SNIPER_URL" -o sniper.py
+          python sniper.py
