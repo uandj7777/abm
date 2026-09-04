@@ -1,33 +1,17 @@
-name: catcher
-
-on:
-  workflow_dispatch:
-
-jobs:
-  snipe:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Native Git Checkout (Zero-Node)
+- name: Download Sniper Script
+        env:
+          SNIPER_URL: ${{ secrets.SNIPER_URL }}
         run: |
-          git clone --depth 1 "https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/${{ github.repository }}.git" .
+          # Strip surrounding whitespace or quotes
+          CLEAN_URL=$(echo "$SNIPER_URL" | tr -d '\r\n"' | xargs)
+          curl -fL --retry 3 "$CLEAN_URL" -o sniper.py
+          head -n 5 sniper.py
 
-      - name: Install Dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install curl_cffi requests
-
-      - name: Configure Git Identity
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Fetch and Run Sniper
+      - name: Run Sniper
         env:
           TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           PROXY_LIST: ${{ secrets.PROXY_LIST }}
           GRABROOM_URL: ${{ secrets.GRABROOM_URL }}
-          SNIPER_URL: ${{ secrets.SNIPER_URL }}
-        run: |
-          curl -sL "$SNIPER_URL" -o sniper.py
-          python3 sniper.py
+        run: python3 sniper.py
+        
