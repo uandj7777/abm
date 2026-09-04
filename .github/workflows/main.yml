@@ -6,14 +6,16 @@ on:
 jobs:
   snipe:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_RUNTIME_ENABLE_NODE24: "true"
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           token: ${{ secrets.TOKEN_GITHUB }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.10'
 
@@ -26,7 +28,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch and Run Sniper from Gist
+      - name: Fetch and Run Sniper
         env:
           TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
