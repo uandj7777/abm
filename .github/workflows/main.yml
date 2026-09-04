@@ -1,8 +1,31 @@
-- name: Download Sniper Script
+name: catch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  snipe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Native Git Checkout
+        run: |
+          git clone --depth 1 "https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/${{ github.repository }}.git" .
+
+      - name: Install Python Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install curl_cffi requests
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch Sniper Script from Gist
         env:
           SNIPER_URL: ${{ secrets.SNIPER_URL }}
         run: |
-          # Strip surrounding whitespace or quotes
+          # Strip accidental quotes, newlines, or extra spaces
           CLEAN_URL=$(echo "$SNIPER_URL" | tr -d '\r\n"' | xargs)
           curl -fL --retry 3 "$CLEAN_URL" -o sniper.py
           head -n 5 sniper.py
@@ -14,4 +37,3 @@
           PROXY_LIST: ${{ secrets.PROXY_LIST }}
           GRABROOM_URL: ${{ secrets.GRABROOM_URL }}
         run: python3 sniper.py
-        
