@@ -1,0 +1,44 @@
+name: BMS Seat Sniper
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: bms-active-run
+  cancel-in-progress: true
+
+jobs:
+  snipe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Native Git Checkout
+        run: |
+          git clone --depth 1 "https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/${{ github.repository }}.git" .
+
+      - name: Install Python Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install curl_cffi requests
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch Private Script from Secret Gist
+        env:
+          SNIPER_URL: ${{ secrets.SNIPER_URL }}
+        run: |
+          rm -f proj.py
+          # Strip quotes, whitespace, and append cache-buster
+          CLEAN_URL=$(echo "$SNIPER_URL" | tr -d '\r\n"' | xargs)
+          curl -fL --retry 3 "${CLEAN_URL}?ts=$(date +%s)" -o proj.py
+          head -n 10 proj.py
+
+      - name: Run Sniper Engine
+        env:
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PROXY_LIST: ${{ secrets.PROXY_LIST }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: python3 -u proj.py
