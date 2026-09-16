@@ -41,4 +41,4 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           PROXY_LIST: ${{ secrets.PROXY_LIST }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-        run: python3 -u proj.py
+        run: python3 -u sniper.py
